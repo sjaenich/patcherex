@@ -26,10 +26,7 @@ class DetourBackendArm(DetourBackendElf):
         if try_without_cfg:
             raise NotImplementedError()
         super().__init__(filename, base_address=base_address, try_reuse_unused_space=try_reuse_unused_space, 
-            replace_note_segment=replace_note_segment, try_without_cfg=try_without_cfg, cfg=cfg)
-        # Override code and data segment address since it fails for ARM
-        self.added_code_segment = 0x0600000
-        self.added_data_segment = 0x0700000
+            replace_note_segment=replace_note_segment, try_without_cfg=try_without_cfg)
 
     def get_block_containing_inst(self, inst_addr):
         index = bisect.bisect_right(self.ordered_nodes, inst_addr) - 1
@@ -217,7 +214,7 @@ class DetourBackendArm(DetourBackendElf):
                 new_code = self.compile_asm(patch.new_asm,
                                                 patch.instruction_addr,
                                                 self.name_map,
-                                                is_thumb=self.check_if_thumb(patch.instruction_addr))
+                                                is_thumb=patch.is_thumb)
                 # Limiting the inline patch to a single block is not necessary
                 # assert len(new_code) <= self.project.factory.block(patch.instruction_addr, num_inst=patch.num_instr, max_size=).size
                 file_offset = self.project.loader.main_object.addr_to_offset(patch.instruction_addr)

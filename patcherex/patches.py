@@ -14,11 +14,12 @@ class Patch:
 
 
 class InlinePatch(Patch):
-    def __init__(self, instruction_addr, new_asm, name=None, num_instr=1):
+    def __init__(self, instruction_addr, new_asm, name=None, num_instr=1, is_thumb=True):
         super(InlinePatch, self).__init__(name)
         self.instruction_addr = instruction_addr
         self.num_instr = num_instr
         self.new_asm = new_asm
+        self.is_thumb = is_thumb
 
     def __repr__(self):
         return "InlinePatch [%s] %08x (%d)" % (self.name,self.instruction_addr,len(self.new_asm))

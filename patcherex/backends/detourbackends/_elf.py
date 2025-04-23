@@ -48,13 +48,13 @@ class DetourBackendElf(Backend):
         self.original_header_end = None
 
         # tag to track if already patched
-        self.patched_tag = b"SHELLPHISH\x00"  # should not be longer than 0x20
+        self.patched_tag = b"PLAI-Patch\x00"  # should not be longer than 0x20
 
         self.name_map = RejectingDict()
 
         # where to put the segments in memory
-        self.added_code_segment = 0x06000000
-        self.added_data_segment = 0x07000000
+        self.added_code_segment = 0x0600000
+        self.added_data_segment = 0x0700000
         current_hdr = self.structs.Elf_Ehdr.parse(self.ncontent)
         self.single_segment_header_size = current_hdr["e_phentsize"]
         assert self.single_segment_header_size >= self.structs.Elf_Phdr.sizeof()
@@ -324,18 +324,18 @@ class DetourBackendElf(Backend):
                                                         "p_filesz": self.phdr_segment["p_filesz"],          "p_memsz":  self.phdr_segment["p_memsz"],
                                                         "p_flags":  0x4,                                    "p_align":  0x1000})
 
-        # add a LOAD segment for the DATA segment
-        data_segment_header = Container(**{ "p_type":   1,                                      "p_offset": self.added_data_file_start,
-                                            "p_vaddr":  self.name_map["ADDED_DATA_START"],      "p_paddr":  self.name_map["ADDED_DATA_START"],
-                                            "p_filesz": len(self.added_data),                   "p_memsz":  len(self.added_data),
-                                            "p_flags":  0x6,                                    "p_align":  0x1000})
-        self.ncontent = utils.bytes_overwrite(self.ncontent, self.structs.Elf_Phdr.build(data_segment_header),
-                                                self.original_header_end + self.structs.Elf_Phdr.sizeof())
-        added_segments += 1
-        self.patch_info["new_segments"].append({  "p_type":   1,                                      "p_offset": self.added_data_file_start,
-                                                    "p_vaddr":  self.name_map["ADDED_DATA_START"],      "p_paddr":  self.name_map["ADDED_DATA_START"],
-                                                    "p_filesz": len(self.added_data),                   "p_memsz":  len(self.added_data),
-                                                    "p_flags":  0x6,                                    "p_align":  0x1000})
+        # # add a LOAD segment for the DATA segment
+        # data_segment_header = Container(**{ "p_type":   1,                                      "p_offset": self.added_data_file_start,
+        #                                     "p_vaddr":  self.name_map["ADDED_DATA_START"],      "p_paddr":  self.name_map["ADDED_DATA_START"],
+        #                                     "p_filesz": len(self.added_data),                   "p_memsz":  len(self.added_data),
+        #                                     "p_flags":  0x6,                                    "p_align":  0x1000})
+        # self.ncontent = utils.bytes_overwrite(self.ncontent, self.structs.Elf_Phdr.build(data_segment_header),
+        #                                         self.original_header_end + self.structs.Elf_Phdr.sizeof())
+        # added_segments += 1
+        # self.patch_info["new_segments"].append({  "p_type":   1,                                      "p_offset": self.added_data_file_start,
+        #                                             "p_vaddr":  self.name_map["ADDED_DATA_START"],      "p_paddr":  self.name_map["ADDED_DATA_START"],
+        #                                             "p_filesz": len(self.added_data),                   "p_memsz":  len(self.added_data),
+        #                                             "p_flags":  0x6,                                    "p_align":  0x1000})
 
         # add a LOAD segment for the CODE segment
         code_segment_header = Container(**{ "p_type":   1,                                      "p_offset": self.added_code_file_start,

@@ -211,10 +211,14 @@ class DetourBackendArm(DetourBackendElf):
         # we assume the patch never patches the added code
         for patch in patches:
             if isinstance(patch, InlinePatch):
+                print(
+                    "\n\t to be compiled", patch.new_asm, patch.instruction_addr
+                )
                 new_code = self.compile_asm(patch.new_asm,
                                                 patch.instruction_addr,
                                                 self.name_map,
                                                 is_thumb=patch.is_thumb)
+                # self.check_if_thumb(patch.instruction_addr)
                 # Limiting the inline patch to a single block is not necessary
                 # assert len(new_code) <= self.project.factory.block(patch.instruction_addr, num_inst=patch.num_instr, max_size=).size
                 file_offset = self.project.loader.main_object.addr_to_offset(patch.instruction_addr)
@@ -316,7 +320,7 @@ class DetourBackendArm(DetourBackendElf):
                 segments = [segments[0]] + [patch.new_segment] + segments[1:]
 
             self.setup_headers(segments)
-            self.set_added_segment_headers()
+            # self.set_added_segment_headers()
             l.debug("final symbol table: %s", repr([(k,hex(v)) for k,v in self.name_map.items()]))
         else:
             l.info("no patches, the binary will not be touched")
